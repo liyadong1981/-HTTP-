@@ -171,7 +171,7 @@ namespace HttpServer
             */
             if (tokens.Length != 3)
             {//如果字符串数组长度不为3的话，产生异常，正常的http请求字符串为：GET / HTTP/1.1
-                throw new Exception("无效的HTTP请求行");
+                throw new Exception("\r\n无效的HTTP请求行");
             }
             //取得http请求方法  GET
             http_method = tokens[0].ToUpper();
@@ -180,7 +180,7 @@ namespace HttpServer
             //http请求的版本号
             http_protocol_versionstring = tokens[2];
             //输出HTTP请求行
-            Console.WriteLine("http请求开始: " + request);
+            Console.WriteLine("\r\nhttp请求开始 " + request);
         }
 
         /// <summary>
@@ -218,6 +218,10 @@ namespace HttpServer
             }
         }
 
+        /// <summary>
+        /// 返回HTTP GET信息
+        /// </summary>
+        /// <remarks>直接调用传入的HTTP对象的函数</remarks>
         public void handleGETRequest()
         {
             srv.handleGETRequest(this);
@@ -228,6 +232,10 @@ namespace HttpServer
         /// </summary>
         /// <remarks>默认缓存为10M</remarks>
         private const int BUF_SIZE = 4096;
+        /// <summary>
+        /// 返回HTTP POST信息
+        /// </summary>
+        /// <remarks>先调用类内部的函数处理POST发送过来的数据，在调用传入的 HTTP对象中的函数</remarks>
         public void handlePOSTRequest()
         {
             // this post data processing just reads everything into a memory stream.
@@ -236,28 +244,26 @@ namespace HttpServer
             // we hand him needs to let him see the "end of the stream" at this content 
             // length, because otherwise he won't know when he's seen it all! 
 
-            Console.WriteLine("get post data start");
+            Console.WriteLine("开始取得POST数据");
             int content_len = 0;
-            MemoryStream ms = new MemoryStream();
+            MemoryStream ms = new MemoryStream();                          
             if (this.httpHeaders.ContainsKey("Content-Length"))
-            {
-                content_len = Convert.ToInt32(this.httpHeaders["Content-Length"]);
+            {//如果HTTP头部信息中包含长度信息
+                content_len = Convert.ToInt32(this.httpHeaders["Content-Length"]);    //得出数据长度
                 if (content_len > MAX_POST_SIZE)
-                {
-                    throw new Exception(
-                        String.Format("POST Content-Length({0}) too big for this simple server",
-                          content_len));
+                {//如果数据长度大于  
+                    throw new Exception(String.Format("发送的数据长度为({0}) 超出服务器接收能力", content_len));
                 }
-                byte[] buf = new byte[BUF_SIZE];
-                int to_read = content_len;
+                byte[] buf = new byte[BUF_SIZE];                     //开辟数据缓冲区
+                int to_read = content_len; 
                 while (to_read > 0)
                 {
-                    Console.WriteLine("starting Read, to_read={0}", to_read);
+                    Console.WriteLine("开始读取POST数据, 需要读取数据长度={0}", to_read);
 
                     int numread = this.inputStream.Read(buf, 0, Math.Min(BUF_SIZE, to_read));
-                    Console.WriteLine("read finished, numread={0}", numread);
+                    Console.WriteLine("读取数据完毕, 已经读取数据长度={0}", numread);
                     if (numread == 0)
-                    {
+                    {//数据读取完毕   --经过测试此段代码无执行的可能性
                         if (to_read == 0)
                         {
                             break;
@@ -267,12 +273,12 @@ namespace HttpServer
                             throw new Exception("client disconnected during post");
                         }
                     }
-                    to_read -= numread;
-                    ms.Write(buf, 0, numread);
+                    to_read -= numread;                          //重新计算需要读取的数据长度
+                    ms.Write(buf, 0, numread);                 //将读取的数据写入内存
                 }
-                ms.Seek(0, SeekOrigin.Begin);
+                ms.Seek(0, SeekOrigin.Begin);                //将内存流定位到开始位置
             }
-            Console.WriteLine("get post data end");
+            Console.WriteLine("获取POST数据完毕");
             srv.handlePOSTRequest(this, new StreamReader(ms));
 
         }
@@ -362,28 +368,34 @@ namespace HttpServer
         public MyHttpServer(int port) : base(port)
         {
         }
+        /// <summary>
+        /// 返回HTTP GET请求的信息
+        /// </summary>
         public override void handleGETRequest(HttpProcessor p)
         {
-            Console.WriteLine("request: {0}", p.http_url);
+            Console.WriteLine("返回GET请求信息: {0}", p.http_url);
             p.writeSuccess();
-            p.outputStream.WriteLine("<html><body><h1>test server</h1>");
+            p.outputStream.WriteLine("<html><body><h1>返回GET请求</h1>");
             p.outputStream.WriteLine("Current Time: " + DateTime.Now.ToString());
             p.outputStream.WriteLine("url : {0}", p.http_url);
 
             p.outputStream.WriteLine("<form method=post action=/form>");
-            p.outputStream.WriteLine("<input type=text name=foo value=foovalue>");
-            p.outputStream.WriteLine("<input type=submit name=bar value=barvalue>");
+            p.outputStream.WriteLine("<input type=text name=foo value=''>");
+            p.outputStream.WriteLine("<input type=submit name=bar value=点击进行POST测试>");
             p.outputStream.WriteLine("</form>");
         }
 
+        /// <summary>
+        /// 返回HTTP POST请求的信息
+        /// </summary>
         public override void handlePOSTRequest(HttpProcessor p, StreamReader inputData)
         {
-            Console.WriteLine("POST request: {0}", p.http_url);
+            Console.WriteLine("返回POST请求信息: {0}", p.http_url);
             string data = inputData.ReadToEnd();
 
             p.outputStream.WriteLine("<html><body><h1>test server</h1>");
             p.outputStream.WriteLine("<a href=/test>return</a><p>");
-            p.outputStream.WriteLine("postbody: <pre>{0}</pre>", data);
+           // p.outputStream.WriteLine("postbody: <pre>{0}</pre>", data);
         }
     }
     class Program

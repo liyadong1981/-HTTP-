@@ -143,7 +143,7 @@
             this.msg.Multiline = true;
             this.msg.Name = "msg";
             this.msg.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.msg.Size = new System.Drawing.Size(1211, 573);
+            this.msg.Size = new System.Drawing.Size(1211, 643);
             this.msg.TabIndex = 7;
             // 
             // label1
@@ -247,8 +247,8 @@
             // 
             this.splitContainer1.Panel2.Controls.Add(this.msg);
             this.splitContainer1.Size = new System.Drawing.Size(1211, 978);
-            this.splitContainer1.SplitterDistance = 400;
-            this.splitContainer1.SplitterWidth = 5;
+            this.splitContainer1.SplitterDistance = 325;
+            this.splitContainer1.SplitterWidth = 10;
             this.splitContainer1.TabIndex = 10;
             // 
             // label7
