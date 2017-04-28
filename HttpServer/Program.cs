@@ -31,9 +31,23 @@ namespace HttpServer
         private Stream inputStream;
         public StreamWriter outputStream;
 
+        /// <summary>
+        /// HTTP请求的类型
+        /// </summary>
+        /// <remarks>GET or POST</remarks>
         public String http_method;
+        /// <summary>
+        /// http请求的资源
+        /// </summary>
         public String http_url;
+        /// <summary>
+        /// HTTP请求的版本
+        /// </summary>
         public String http_protocol_versionstring;
+        /// <summary>
+        /// HTTP头部信息
+        /// </summary>
+        /// <remarks>名称：值</remarks>
         public Hashtable httpHeaders = new Hashtable();
 
 
@@ -85,6 +99,19 @@ namespace HttpServer
         /// <summary>
         /// 主要的处理函数，用于被多线程调用
         /// </summary>
+        /// <remarks>
+        /// HTTP请求的格式如下所示：
+        /// request-line
+        /// headers
+        /// blank line
+        /// request-body
+        /// 在HTTP请求中，第一行必须是一个请求行（request line），用来说明请求类型、要访问的资源以及使用的HTTP版本。紧接着是一个首部（header）小节，用来说明服务器要使用的附加信息。在首部之后是一个空行，再此之后可以添加任意的其他数据[称之为主体（body）]。
+        /// GET / HTTP/1.1
+        /// Host: www.baidu.com
+        /// User-Agent: Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.7.6)
+        /// Gecko/20050225 Firefox/1.0.1
+        /// Connection: Keep-Alive
+        /// </remarks>
         public void process()
         {
             // we can't use a StreamReader for input, because it buffers up extra data on us inside it's
@@ -96,77 +123,97 @@ namespace HttpServer
             outputStream = new StreamWriter(new BufferedStream(socket.GetStream()));
             try
             {
+                //处理HTTP请求行 --第一行
                 parseRequest();
+                //处理HTTP请求头部信息，将头部信息的名称及值放入数组httpHeaders中
                 readHeaders();
                 if (http_method.Equals("GET"))
-                {
+                {//HTTP请求采用GET方式
                     handleGETRequest();
                 }
                 else if (http_method.Equals("POST"))
-                {
+                {//HTTP请求采用POST方式
                     handlePOSTRequest();
                 }
             }
             catch (Exception e)
             {
-                Console.WriteLine("Exception: " + e.ToString());
+                Console.WriteLine("产生异常: " + e.ToString());
+                //输出失败信息
                 writeFailure();
             }
+            //清理当前编写器的所有缓冲区，并使所有缓冲数据写入基础流
             outputStream.Flush();
             // bs.Flush(); // flush any remaining output
-            inputStream = null; outputStream = null; // bs = null;            
+            inputStream = null;
+            outputStream = null; // bs = null;            
+            //关闭TCP客户端连接
             socket.Close();
         }
 
+        /// <summary>
+        /// 处理HTTP请求行
+        /// </summary>
         public void parseRequest()
         {
-            //从TCP客户端连接的输入流中读取一行数据
+            //从TCP客户端连接的输入流中读取一行数据    判断HTTP请求行
             String request = streamReadLine(inputStream);
             //以空格为分隔符分割字符串
             string[] tokens = request.Split(' ');
+
+            /*用于接收的  参数输出 即HTTP请求
             Console.WriteLine("-------------------------------------------------------------");
             foreach (var s in tokens)
             {
                 Console.WriteLine(s);
             }
             Console.WriteLine("-------------------------------------------------------------");
+            */
             if (tokens.Length != 3)
             {//如果字符串数组长度不为3的话，产生异常，正常的http请求字符串为：GET / HTTP/1.1
-                throw new Exception("invalid http request line");
+                throw new Exception("无效的HTTP请求行");
             }
+            //取得http请求方法  GET
             http_method = tokens[0].ToUpper();
+            //http请求的资源
             http_url = tokens[1];
+            //http请求的版本号
             http_protocol_versionstring = tokens[2];
-
-            Console.WriteLine("starting: " + request);
+            //输出HTTP请求行
+            Console.WriteLine("http请求开始: " + request);
         }
 
+        /// <summary>
+        /// 处理HTTP请求头部信息
+        /// </summary>
         public void readHeaders()
         {
-            Console.WriteLine("readHeaders()");
+            Console.WriteLine("读取HTTP头部信息:");
             String line;
             while ((line = streamReadLine(inputStream)) != null)
-            {
+            {//不断从TCP客户端流中读取数据行
                 if (line.Equals(""))
-                {
-                    Console.WriteLine("got headers");
+                {//读到空行，说明已经获取完HTTP头部信息
+                    Console.WriteLine("已经获取HTTP头部信息");
                     return;
                 }
-
+                //取得分隔符
                 int separator = line.IndexOf(':');
                 if (separator == -1)
-                {
-                    throw new Exception("invalid http header line: " + line);
+                {//如果在头部信息的每一行中没有：符号，说明HTTP有误
+                    throw new Exception("无效的HTTP头部信息: " + line);
                 }
+                //取得HTTP头部信息每一行的名称
                 String name = line.Substring(0, separator);
                 int pos = separator + 1;
                 while ((pos < line.Length) && (line[pos] == ' '))
-                {
+                {//去除：符号后边的空格
                     pos++; // strip any spaces
                 }
-
+                //取得HTTP头部信息每一行的值
                 string value = line.Substring(pos, line.Length - pos);
-                Console.WriteLine("header: {0}:{1}", name, value);
+                Console.WriteLine("头部信息: {0}:{1}", name, value);
+                //将头部信息的名称及值放入表中
                 httpHeaders[name] = value;
             }
         }
@@ -230,6 +277,9 @@ namespace HttpServer
 
         }
 
+        /// <summary>
+        /// 返回HTTP请求成功信息
+        /// </summary>
         public void writeSuccess()
         {
             outputStream.WriteLine("HTTP/1.0 200 OK");
@@ -238,6 +288,9 @@ namespace HttpServer
             outputStream.WriteLine("");
         }
 
+        /// <summary>
+        /// 返回HTTP请求失败信息
+        /// </summary>
         public void writeFailure()
         {
             outputStream.WriteLine("HTTP/1.0 404 File not found");

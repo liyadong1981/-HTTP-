@@ -5,6 +5,11 @@ VisualStudioVersion = 15.0.26228.12
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HttpServer", "HttpServer\HttpServer.csproj", "{060ADF82-A26C-41B5-B84A-28E49343F0A8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HttpPostTest", "HttpPostTest\HttpPostTest.csproj", "{337CA1C8-63EF-475B-ADCC-71D1317D63C1}"
+	ProjectSection(ProjectDependencies) = postProject
+		{060ADF82-A26C-41B5-B84A-28E49343F0A8} = {060ADF82-A26C-41B5-B84A-28E49343F0A8}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +20,10 @@ Global
 		{060ADF82-A26C-41B5-B84A-28E49343F0A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{060ADF82-A26C-41B5-B84A-28E49343F0A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{060ADF82-A26C-41B5-B84A-28E49343F0A8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{337CA1C8-63EF-475B-ADCC-71D1317D63C1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{337CA1C8-63EF-475B-ADCC-71D1317D63C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{337CA1C8-63EF-475B-ADCC-71D1317D63C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{337CA1C8-63EF-475B-ADCC-71D1317D63C1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
