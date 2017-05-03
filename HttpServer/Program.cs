@@ -277,7 +277,15 @@ namespace HttpServer
                     ms.Write(buf, 0, numread);                 //将读取的数据写入内存
                 }
                 ms.Seek(0, SeekOrigin.Begin);                //将内存流定位到开始位置
-            }
+				{//将接收的数据保存文件
+					FileStream fs = new FileStream(@"c:\a.txt", FileMode.OpenOrCreate);
+					byte[] buff = ms.ToArray();
+					fs.Write(buff, 0, buff.Length);
+					fs.Flush();
+					fs.Close();
+				}
+
+			}
             Console.WriteLine("获取POST数据完毕");
             srv.handlePOSTRequest(this, new StreamReader(ms));
 

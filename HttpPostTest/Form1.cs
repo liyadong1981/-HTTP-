@@ -13,7 +13,8 @@ namespace HttpPostTest
         public Form1()
         {
             InitializeComponent();
-            Control.CheckForIllegalCrossThreadCalls = false;
+			//在多线程程序中，新创建的线程不能访问UI线程创建的窗口控件，如果需要访问窗口中的控件，可以在窗口构造函数中将CheckForIllegalCrossThreadCalls设置为 false
+			Control.CheckForIllegalCrossThreadCalls = false;
         }
 
         string url = "";
@@ -25,59 +26,65 @@ namespace HttpPostTest
         string result = "";
         FileStream fst;
         int index = 0;
-        //打开
-        private void button1_Click(object sender, EventArgs e)
-        {
-            if (openFileDialog1.ShowDialog() == DialogResult.OK)
-                txtFilePath.Text = openFileDialog1.FileName;
-        }
-        //发送
-        private void button2_Click_1(object sender, EventArgs e)
-        {
-            msg.Text = "";
-            successC.Text = "0";
-            responseTime.Text = "";
-            SuccessCount = 0;
-            FailCount = 0;
-            result = "";
+		 
+		/// <summary>
+		/// 取得要发送的文件名称
+		/// </summary>
+		private void button1_Click(object sender, EventArgs e)
+		{
+			if (openFileDialog1.ShowDialog() == DialogResult.OK)
+				txtFilePath.Text = openFileDialog1.FileName;
+		}
+	 
+		/// <summary>
+		/// 开始发送HTTP POST请求
+		/// </summary>
+		private void button2_Click_1(object sender, EventArgs e)
+		{
+			msg.Text = "";
+			successC.Text = "0";
+			responseTime.Text = "";
+			SuccessCount = 0;
+			FailCount = 0;
+			result = "";
 
-            url = txtUrl.Text;
-            filePath = txtFilePath.Text;
-            int tn = (int)numThreads.Value;
-            tryCount = (int)numTrys.Value;
-            spac = int.Parse(txtSpac.Text);
+			url = txtUrl.Text;
+			filePath = txtFilePath.Text;
+			int tn = (int)numThreads.Value;
+			tryCount = (int)numTrys.Value;
+			spac = int.Parse(txtSpac.Text);
 
-            //使用cp提供的下行包发送测试
-            if (filePath != "")
-            {
-                fst = new FileStream(filePath, FileMode.Open, FileAccess.Read);
-                StreamReader reader2 = new StreamReader(fst, Encoding.Default);
-                result = "[" + DateTime.Now.ToString() + "]\r\n发送数据包：\r\n" + reader2.ReadToEnd() +
-                    "\r\n\r\n\r\n\r\n\r\n";
-                reader2.Close();
-            }
-
-
-            for (int i = 0; i < tn; i++)
-            {
-                Thread td = new Thread(new ThreadStart(ThreadFun));
-                td.Start();
-            }
-
+			//使用cp提供的下行包发送测试
+			if (filePath != "")
+			{
+				fst = new FileStream(filePath, FileMode.Open, FileAccess.Read);
+				StreamReader reader2 = new StreamReader(fst, Encoding.Default);
+				result = "[" + DateTime.Now.ToString() + "]\r\n发送数据包：\r\n" + reader2.ReadToEnd() +
+					"\r\n\r\n\r\n\r\n\r\n";
+				reader2.Close();
+			}
 
 
-            //while ((SuccessCount + FailCount) < tn * tryCount)
-            //{
-            //    //Thread.Sleep(10);
-            //    msg.Text = result;
-            //}
-            //msg.Text += "\r\n-------------------------------------------------------------";
-            //msg.Text += "\r\n成功：" + SuccessCount;
-            //msg.Text += "\r\n失败：" + FailCount;
-            //msg.Text += "\r\n成功率：" + string.Format("{0:p}", ((double)SuccessCount / (SuccessCount + FailCount)));
-        }
+			for (int i = 0; i < tn; i++)
+			{
+				Thread td = new Thread(new ThreadStart(ThreadFun));
+				td.Start();
+			}
 
-        public void ThreadFun()
+
+
+			//while ((SuccessCount + FailCount) < tn * tryCount)
+			//{
+			//    //Thread.Sleep(10);
+			//    msg.Text = result;
+			//}
+			//msg.Text += "\r\n-------------------------------------------------------------";
+			//msg.Text += "\r\n成功：" + SuccessCount;
+			//msg.Text += "\r\n失败：" + FailCount;
+			//msg.Text += "\r\n成功率：" + string.Format("{0:p}", ((double)SuccessCount / (SuccessCount + FailCount)));
+		}
+
+		public void ThreadFun()
         {
             for (int j = 0; j < tryCount; j++)
             {
