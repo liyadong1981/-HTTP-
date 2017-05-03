@@ -123,6 +123,9 @@ namespace HttpServer
             outputStream = new StreamWriter(new BufferedStream(socket.GetStream()));
             try
             {
+				Console.WriteLine();
+				Console.WriteLine();
+				Console.WriteLine( DateTime.Now.ToString());
                 //处理HTTP请求行 --第一行
                 parseRequest();
                 //处理HTTP请求头部信息，将头部信息的名称及值放入数组httpHeaders中
@@ -147,9 +150,10 @@ namespace HttpServer
             // bs.Flush(); // flush any remaining output
             inputStream = null;
             outputStream = null; // bs = null;            
-            //关闭TCP客户端连接
-            socket.Close();
-        }
+			
+			//关闭TCP客户端连接 
+			socket.Close();
+		}
 
         /// <summary>
         /// 处理HTTP请求行
@@ -171,7 +175,7 @@ namespace HttpServer
             */
             if (tokens.Length != 3)
             {//如果字符串数组长度不为3的话，产生异常，正常的http请求字符串为：GET / HTTP/1.1
-                throw new Exception("\r\n无效的HTTP请求行");
+                throw new Exception("无效的HTTP请求行");
             }
             //取得http请求方法  GET
             http_method = tokens[0].ToUpper();
@@ -180,7 +184,7 @@ namespace HttpServer
             //http请求的版本号
             http_protocol_versionstring = tokens[2];
             //输出HTTP请求行
-            Console.WriteLine("\r\nhttp请求开始 " + request);
+            Console.WriteLine("http请求开始 " + request);
         }
 
         /// <summary>
@@ -297,7 +301,7 @@ namespace HttpServer
         public void writeSuccess()
         {
             outputStream.WriteLine("HTTP/1.0 200 OK");
-            outputStream.WriteLine("Content-Type: text/html");
+            outputStream.WriteLine("Content-Type: application/xml");
             outputStream.WriteLine("Connection: close");
             outputStream.WriteLine("");
         }
@@ -399,12 +403,14 @@ namespace HttpServer
         public override void handlePOSTRequest(HttpProcessor p, StreamReader inputData)
         {
             Console.WriteLine("返回POST请求信息: {0}", p.http_url);
-            string data = inputData.ReadToEnd();
+			p.writeSuccess();
 
-            p.outputStream.WriteLine("<html><body><h1>test server</h1>");
-            p.outputStream.WriteLine("<a href=/test>return</a><p>");
-           // p.outputStream.WriteLine("postbody: <pre>{0}</pre>", data);
-        }
+			// string data = inputData.ReadToEnd();
+
+			//  p.outputStream.WriteLine("<html><body><h1>test server</h1>");
+			//  p.outputStream.WriteLine("<a href=/test>return</a><p>");
+			// p.outputStream.WriteLine("postbody: <pre>{0}</pre>", data);
+		}
     }
     class Program
     {
@@ -417,7 +423,7 @@ namespace HttpServer
             }
             else
             {//默认服务器端口号为8080
-                httpServer = new MyHttpServer(8080);
+                httpServer = new MyHttpServer(8989);
             }
             //生成一个线程，并设置委托函数
             Thread thread = new Thread(new ThreadStart(httpServer.listen));
